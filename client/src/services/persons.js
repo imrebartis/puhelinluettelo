@@ -1,5 +1,5 @@
 import axios from 'axios';
-const baseUrl = 'http://localhost:3001/api/persons';
+const baseUrl = '/api/notes';
 
 const requestWithResponseData = (request) => {
   return request.then((response) => response.data);
