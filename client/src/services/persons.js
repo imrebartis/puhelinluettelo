@@ -1,5 +1,5 @@
 import axios from 'axios';
-const baseUrl = '/api/notes';
+const baseUrl = '/api/persons';
 
 const requestWithResponseData = (request) => {
   return request.then((response) => response.data);
