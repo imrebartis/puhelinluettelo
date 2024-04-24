@@ -15,7 +15,7 @@ morgan.token("body", function (request, response) {
 });
 
 app.use(
-  morgan(":method :url :status :res[content-length] - :response-time ms :body")
+  morgan(":method :url :status :res[name-length] - :response-time ms :body")
 );
 
 let persons = [
@@ -67,15 +67,15 @@ app.post("/api/persons", (request, response) => {
 
   console.log(request.body);
 
-  if (!body.content) {
+  if (!body.name) {
     return response.status(400).json({
-      error: "content missing",
+      error: "name missing",
     });
   }
 
   const person = {
-    content: body.content,
-    important: body.important || false,
+    name: body.name,
+    number: body.number || false,
     id: generateId(),
   };
 
