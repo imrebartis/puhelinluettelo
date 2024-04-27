@@ -4,11 +4,13 @@ const morgan = require("morgan");
 
 const cors = require("cors");
 
-require('dotenv').config();
+require("dotenv").config();
 
-const Person = require('./models/person');
+const Person = require("./models/person");
 
-app.use(express.static('dist'));
+const { toPersonObject } = require("./utils");
+
+app.use(express.static("dist"));
 
 app.use(cors());
 
@@ -39,21 +41,32 @@ app.get("/", (request, response) => {
   response.send("<h1>Hello World!</h1>");
 });
 
-app.get('/api/persons', (request, response) => {
-  Person.find({}).then(persons => {
-    response.json(persons)
-  })
+app.get("/api/persons", (request, response) => {
+  Person.find({})
+    .then((persons) => {
+      let personsArray = persons.map(toPersonObject);
+      response.json(personsArray);
+    })
+    .catch((error) => {
+      console.log(error);
+      response.status(500).end();
+    });
 });
 
 app.get("/api/persons/:id", (request, response) => {
   const id = Number(request.params.id);
-  const person = persons.find((person) => person.id === id);
-
-  if (person) {
-    response.json(person);
-  } else {
-    response.status(404).end();
-  }
+  Person.findOne({ id })
+    .then((person) => {
+      if (person) {
+        response.json(toPersonObject(person));
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      response.status(400).send({ error: "malformatted id" });
+    });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
@@ -63,9 +76,13 @@ app.delete("/api/persons/:id", (request, response) => {
   response.status(204).end();
 });
 
+let maxId = 0;
+
 const generateId = () => {
-  const maxId = persons.length > 0 ? Math.max(...persons.map((n) => n.id)) : 0;
-  return maxId + 1;
+  const currentMaxId =
+    persons.length > 0 ? Math.max(...persons.map((n) => n.id)) : 0;
+  maxId = Math.max(maxId, currentMaxId) + 1;
+  return maxId;
 };
 
 app.post("/api/persons", (request, response) => {
@@ -79,15 +96,15 @@ app.post("/api/persons", (request, response) => {
     });
   }
 
-  const person = {
+  const person = new Person({
     name: body.name,
     number: body.number || false,
     id: generateId(),
-  };
+  });
 
-  persons = persons.concat(person);
-
-  response.json(person);
+  person.save().then((savedPerson) => {
+    response.json(savedPerson);
+  });
 });
 
 const PORT = process.env.PORT;
