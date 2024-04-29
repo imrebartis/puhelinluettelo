@@ -8,13 +8,25 @@ require("dotenv").config();
 
 const Person = require("./models/person");
 
-const { toPersonObject } = require("./utils");
-
 app.use(express.static("dist"));
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  }
+
+  next(error);
+};
 
 app.use(cors());
 
 app.use(express.json());
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: "unknown endpoint" });
+};
 
 morgan.token("body", function (request, response) {
   return JSON.stringify(request.body);
@@ -44,46 +56,13 @@ app.get("/", (request, response) => {
 app.get("/api/persons", (request, response) => {
   Person.find({})
     .then((persons) => {
-      let personsArray = persons.map(toPersonObject);
-      response.json(personsArray);
+      response.json(persons);
     })
     .catch((error) => {
       console.log(error);
       response.status(500).end();
     });
 });
-
-app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  Person.findOne({ id })
-    .then((person) => {
-      if (person) {
-        response.json(toPersonObject(person));
-      } else {
-        response.status(404).end();
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-      response.status(400).send({ error: "malformatted id" });
-    });
-});
-
-app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  persons = persons.filter((person) => person.id !== id);
-
-  response.status(204).end();
-});
-
-let maxId = 0;
-
-const generateId = () => {
-  const currentMaxId =
-    persons.length > 0 ? Math.max(...persons.map((n) => n.id)) : 0;
-  maxId = Math.max(maxId, currentMaxId) + 1;
-  return maxId;
-};
 
 app.post("/api/persons", (request, response) => {
   const body = request.body;
@@ -98,14 +77,53 @@ app.post("/api/persons", (request, response) => {
 
   const person = new Person({
     name: body.name,
-    number: body.number || false,
-    id: generateId(),
+    number: body.number,
   });
 
   person.save().then((savedPerson) => {
     response.json(savedPerson);
   });
 });
+
+app.get("/api/persons/:id", (request, response, next) => {
+  Person.findById(request.params.id)
+    .then((person) => {
+      if (person) {
+        response.json(person);
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch((error) => {
+      next(error);
+    });
+});
+
+app.put("/api/persons/:id", (request, response, next) => {
+  const body = request.body;
+
+  const person = {
+    name: body.name,
+    number: body.number,
+  };
+
+  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then((updatedPerson) => {
+      response.json(updatedPerson);
+    })
+    .catch((error) => next(error));
+});
+
+app.delete("/api/persons/:id", (request, response) => {
+  Person.findByIdAndDelete(request.params.id)
+    .then(() => {
+      response.status(204).end();
+    })
+    .catch((error) => next(error));
+});
+
+app.use(unknownEndpoint);
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
