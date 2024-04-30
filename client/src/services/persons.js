@@ -1,8 +1,12 @@
-import axios from 'axios';
-const baseUrl = '/api/persons';
+import axios from "axios";
+const baseUrl = "/api/persons";
 
 const requestWithResponseData = (request) => {
-  return request.then((response) => response.data);
+  return request
+    .then((response) => response.data)
+    .catch((error) => {
+      throw error;
+    });
 };
 
 const getAll = () => {
