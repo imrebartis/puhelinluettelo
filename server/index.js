@@ -77,6 +77,12 @@ app.post("/api/persons", (request, response, next) => {
     });
   }
 
+  if (!body.number) {
+    return response.status(400).json({
+      error: "number missing",
+    });
+  }
+
   const person = new Person({
     name: body.name,
     number: body.number,

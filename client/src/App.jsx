@@ -27,6 +27,26 @@ const App = () => {
     setPersons(persons.filter((person) => person.id !== id));
   };
 
+  const validatePerson = (name, number) => {
+    if (!name.trim()) {
+      return "Please provide a name";
+    }
+
+    if (!number.trim()) {
+      return "Please provide a number";
+    }
+
+    if (name.trim().length < 3) {
+      return "The name should be at least 3 characters long";
+    }
+
+    if (number.trim().length < 8 || !/^\d{2,3}-\d{7,}$/.test(number.trim())) {
+      return "The number should be in the format of 2-3 digits, a dash, and at least 7 digits";
+    }
+
+    return null;
+  };
+
   const handlePersonError = (person, error, removePerson = false) => {
     console.log(error.response.data);
     let errorMessage = `Information of ${person.name} has already been removed from server`;
@@ -55,9 +75,26 @@ const App = () => {
       existingPerson.name
     );
 
+    const newNumber = window.prompt(
+      `The current number is ${existingPerson.number}. If you want to change it, please enter a new number:`,
+      existingPerson.number
+    );
+
     let updatedPerson = { ...person };
     if (newName !== null && newName !== "") {
       updatedPerson.name = newName;
+    }
+    if (newNumber !== null && newNumber !== "") {
+      updatedPerson.number = newNumber;
+    }
+
+    const validationError = validatePerson(newName, newNumber);
+    if (validationError) {
+      setErrorMessage(validationError);
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 5000);
+      return;
     }
 
     personsService
@@ -77,16 +114,9 @@ const App = () => {
   const addPerson = (event) => {
     event.preventDefault();
 
-    if (!newName.trim()) {
-      setErrorMessage("Please provide a name");
-      setTimeout(() => {
-        setErrorMessage(null);
-      }, 5000);
-      return;
-    }
-
-    if (newName.trim().length < 3) {
-      setErrorMessage("The name should be at least 3 characters long");
+    const validationError = validatePerson(newName, newNumber);
+    if (validationError) {
+      setErrorMessage(validationError);
       setTimeout(() => {
         setErrorMessage(null);
       }, 5000);
@@ -140,7 +170,7 @@ const App = () => {
         })
         .catch((error) => {
           console.log(error);
-          handlePersonError(person, true, error);
+          handlePersonError(person, error, true);
         });
     }
   };
