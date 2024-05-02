@@ -75,18 +75,20 @@ const App = () => {
       existingPerson.name
     );
 
+    if (newName === null) {
+      return;
+    }
+
     const newNumber = window.prompt(
       `The current number is ${existingPerson.number}. If you want to change it, please enter a new number:`,
       existingPerson.number
     );
 
-    let updatedPerson = { ...person };
-    if (newName !== null && newName !== "") {
-      updatedPerson.name = newName;
+    if (newNumber === null) {
+      return;
     }
-    if (newNumber !== null && newNumber !== "") {
-      updatedPerson.number = newNumber;
-    }
+
+    let updatedPerson = { ...person, name: newName, number: newNumber };
 
     const validationError = validatePerson(newName, newNumber);
     if (validationError) {
