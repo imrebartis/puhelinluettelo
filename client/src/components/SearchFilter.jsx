@@ -1,7 +1,7 @@
 const SearchFilter = ({ searchInput, handleSearchInputChange }) => (
   <div>
     filter shown with{' '}
-    <input value={searchInput} onChange={handleSearchInputChange} />
+    <input id="search" name="search" value={searchInput} onChange={handleSearchInputChange} autoComplete="off" />
   </div>
 );
 

@@ -7,10 +7,10 @@ const PersonForm = ({
 }) => (
   <form>
     <div>
-      name: <input value={newName} onChange={handleNameChange} />
+      name: <input id="name" name="name" value={newName} onChange={handleNameChange} autoComplete="off" />
     </div>
     <div>
-      number: <input value={newNumber} onChange={handleNumberChange} />
+      number: <input id="number" name="number" value={newNumber} onChange={handleNumberChange} autoComplete="off" />
     </div>
     <div>
       <button type='submit' onClick={addPerson}>
